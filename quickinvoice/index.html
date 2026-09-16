@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QuickInvoice — Simple invoices, no signup</title>
+<meta name="description" content="Create and export clean PDF invoices in your browser. No account, no server, your data never leaves your device." />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">QI</span>
+      <span class="brand-name">QuickInvoice</span>
+    </div>
+    <div class="topbar-actions">
+      <span id="pro-badge" class="pro-badge hidden">PRO</span>
+      <button id="upgrade-btn" class="btn btn-accent">Unlock Pro — $1.99</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="editor" aria-label="Invoice editor">
+      <div class="card">
+        <h2>Your business</h2>
+        <div class="grid-2">
+          <label>Name<input type="text" id="biz-name" placeholder="Acme Design Co." /></label>
+          <label>Email<input type="email" id="biz-email" placeholder="you@example.com" /></label>
+        </div>
+        <label>Address<textarea id="biz-address" rows="2" placeholder="123 Main St, Springfield"></textarea></label>
+        <label class="logo-field">
+          Logo <span class="hint">(Pro)</span>
+          <input type="file" id="biz-logo" accept="image/png,image/jpeg" />
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>Bill to</h2>
+        <div class="grid-2">
+          <label>Client name<input type="text" id="client-name" placeholder="Jane Client" /></label>
+          <label>Client email<input type="email" id="client-email" placeholder="client@example.com" /></label>
+        </div>
+        <label>Client address<textarea id="client-address" rows="2" placeholder="456 Oak Ave, Shelbyville"></textarea></label>
+      </div>
+
+      <div class="card">
+        <h2>Invoice details</h2>
+        <div class="grid-3">
+          <label>Invoice #<input type="text" id="inv-number" placeholder="INV-0001" /></label>
+          <label>Date<input type="date" id="inv-date" /></label>
+          <label>Due date<input type="date" id="inv-due" /></label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2>Line items</h2>
+          <button id="add-item" class="btn btn-ghost">+ Add item</button>
+        </div>
+        <div id="items-table" class="items-table">
+          <div class="items-row items-head">
+            <span>Description</span>
+            <span>Qty</span>
+            <span>Rate</span>
+            <span>Amount</span>
+            <span></span>
+          </div>
+          <div id="items-body"></div>
+        </div>
+
+        <div class="totals-row">
+          <label class="inline">Tax %<input type="number" id="tax-rate" min="0" step="0.01" value="0" /></label>
+          <label class="inline">Discount ($)<input type="number" id="discount" min="0" step="0.01" value="0" /></label>
+        </div>
+
+        <label>Notes / payment terms<textarea id="notes" rows="2" placeholder="Payment due within 14 days. Thank you!"></textarea></label>
+      </div>
+
+      <div class="actions-row">
+        <button id="save-invoice" class="btn btn-secondary">Save invoice</button>
+        <button id="download-pdf" class="btn btn-primary">Download PDF</button>
+      </div>
+
+      <div class="card">
+        <h2>Saved invoices <span id="saved-count-hint" class="hint"></span></h2>
+        <div id="saved-list" class="saved-list"></div>
+      </div>
+    </section>
+
+    <section class="preview-pane" aria-label="Invoice preview">
+      <div id="invoice-preview" class="invoice-sheet">
+        <div class="inv-header">
+          <div class="inv-from">
+            <img id="preview-logo" class="preview-logo hidden" alt="Business logo" />
+            <div id="preview-biz-name" class="inv-biz-name">Your Business</div>
+            <div id="preview-biz-address" class="inv-muted"></div>
+            <div id="preview-biz-email" class="inv-muted"></div>
+          </div>
+          <div class="inv-meta">
+            <h1>INVOICE</h1>
+            <div><span class="inv-muted">No.</span> <span id="preview-number">—</span></div>
+            <div><span class="inv-muted">Date</span> <span id="preview-date">—</span></div>
+            <div><span class="inv-muted">Due</span> <span id="preview-due">—</span></div>
+          </div>
+        </div>
+
+        <div class="inv-bill-to">
+          <div class="inv-label">Bill to</div>
+          <div id="preview-client-name" class="inv-strong">—</div>
+          <div id="preview-client-address" class="inv-muted"></div>
+          <div id="preview-client-email" class="inv-muted"></div>
+        </div>
+
+        <table class="inv-items">
+          <thead>
+            <tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
+          </thead>
+          <tbody id="preview-items"></tbody>
+        </table>
+
+        <div class="inv-totals">
+          <div class="inv-totals-row"><span>Subtotal</span><span id="preview-subtotal">$0.00</span></div>
+          <div class="inv-totals-row"><span>Discount</span><span id="preview-discount">$0.00</span></div>
+          <div class="inv-totals-row"><span>Tax</span><span id="preview-tax">$0.00</span></div>
+          <div class="inv-totals-row inv-total-final"><span>Total</span><span id="preview-total">$0.00</span></div>
+        </div>
+
+        <div id="preview-notes" class="inv-notes"></div>
+        <div id="preview-watermark" class="inv-watermark hidden">Made with QuickInvoice — quickinvoice.app</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="upgrade-modal" class="modal-backdrop hidden">
+    <div class="modal">
+      <button id="close-modal" class="modal-close" aria-label="Close">&times;</button>
+      <h2>Unlock QuickInvoice Pro</h2>
+      <p>One-time payment of <strong>$1.99</strong>. No subscription. Removes the watermark, the 3-invoice limit, and unlocks logo upload.</p>
+      <a id="buy-link" class="btn btn-accent btn-block" href="#" target="_blank" rel="noopener">Buy on Gumroad — $1.99</a>
+      <p class="hint">After purchase, Gumroad emails you a license key. Enter it below to activate.</p>
+      <div class="license-row">
+        <input type="text" id="license-input" placeholder="License key" />
+        <button id="activate-btn" class="btn btn-primary">Activate</button>
+      </div>
+      <p id="license-status" class="license-status" role="status"></p>
+    </div>
+  </div>
+
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
